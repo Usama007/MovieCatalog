@@ -1,11 +1,12 @@
 import { Container, List, ListItem } from 'native-base'
 import React, { useEffect, useState } from 'react'
-import { Text, ScrollView, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native'
+import { Text, ScrollView, ActivityIndicator, StyleSheet, TouchableOpacity, Pressable, TouchableHighlight } from 'react-native'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import Config from 'react-native-config'
 import MovieListItem from '../components/movieListItem'
 import api from '../misc/api'
 import { useSelector } from 'react-redux'
+
 import recentlyVisitedSlice from '../redux/recentlyVisitedSlice'
 
 const HomeScreen = ({ navigation }) => {
@@ -43,6 +44,7 @@ const HomeScreen = ({ navigation }) => {
                 }
             })
 
+
             for (var genre of genres.data?.genres) {
                 let pageNo = 1;
                 let movies = await api.get("search/movie", {
@@ -57,22 +59,26 @@ const HomeScreen = ({ navigation }) => {
                 for (var movie of movies.data?.results) {
                     if (array.length == 5)
                         break;
-                    if (movie.poster_path != null && movie.vote_average > 7) {
-                        let index = movie.genre_ids.findIndex(item => { return item === genre.id });
-                        if (index >= 0) {
-                            array.push(movie)
-                        }
+                    let index = movie.genre_ids.findIndex(item => { return item === genre.id });
+                    if (index >= 0) {
+                        array.push(movie)
                     }
                 }
+
                 if (array.length < 5) {
                     pageNo++;
                     continue;
                 } else {
-                    jsonObj[genre.name] = array;
+                    let object = {
+                        name: genre.name,
+                        movies: array
+                    }
+                    jsonObj[genre.id] = object;
                     array = [];
                     pageNo = 1;
                 }
             }
+            console.log(jsonObj);
             setgenreObj(jsonObj)
             setloading(false)
         } catch (error) {
@@ -103,11 +109,17 @@ const HomeScreen = ({ navigation }) => {
 
                     {Object.keys(genreObj).map((obj, index) =>
                         <List key={obj} >
-                            <ListItem itemDivider >
-                                <Text style={styles.genreName}>{obj}</Text>
+
+                            <ListItem itemDivider style={styles.genreItemDivider} onPress={() => {
+                                navigation.navigate('Genre')
+                            }}>
+                                <Text style={styles.genreName}>{genreObj[obj].name}</Text>
+                                <Ionicons name="chevron-forward" size={15} />
+
                             </ListItem>
+
                             <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-                                {genreObj[obj].map((item, index) =>
+                                {genreObj[obj].movies.map((item, index) =>
                                     <MovieListItem key={item.id} item={item} />
                                 )}
                             </ScrollView>
@@ -126,6 +138,9 @@ const styles = StyleSheet.create({
     genreName: {
         fontSize: 16,
         textTransform: 'uppercase'
+    },
+    genreItemDivider: {
+        justifyContent: 'space-between'
     }
 
 })

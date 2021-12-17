@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     cardItem: {
         paddingLeft: 0,
         paddingRight: 0,
-
+        justifyContent:'center',
         paddingTop: 0,
         paddingBottom: 0
     },
@@ -121,10 +121,8 @@ const styles = StyleSheet.create({
     },
     images: {
         height: 160,
-        width: 100,
-        borderTopLeftRadius: 8,
-        borderTopRightRadius: 8,
-        flex: 1
+        width: 110,     
+        
     }
 
 })
