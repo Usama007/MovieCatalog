@@ -4,7 +4,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/homeScreen';
 import Config from 'react-native-config';
 import DetailScreen from '../screens/detailScreen';
-import { Button, Text, TouchableOpacity } from 'react-native';
 import WatchListScreen from '../screens/watchListScreen';
 import GenreScreen from '../screens/genreScreen';
 
@@ -18,7 +17,7 @@ const Route = ({ navigation }) => {
                     title: 'MOVIE CATALOG'
                 }} component={HomeScreen} />
                 <Stack.Screen name="Detail" options={{ title: 'DETAIL' }} component={DetailScreen} />
-                <Stack.Screen name="WatchList" options={{ title: 'Watchlist' }} component={WatchListScreen} />
+                <Stack.Screen name="WatchList" options={{ title: 'WATCHLIST' }} component={WatchListScreen} />
                 <Stack.Screen name="Genre" component={GenreScreen} />
             </Stack.Navigator>
         </NavigationContainer>

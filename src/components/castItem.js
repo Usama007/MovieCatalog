@@ -1,6 +1,6 @@
 import { Card, CardItem } from 'native-base'
 import React from 'react'
-import { View, Text, StyleSheet, Image } from 'react-native'
+import { Text, StyleSheet, Image } from 'react-native'
 
 const CastItem = ({item}) => {
     return (
@@ -12,10 +12,9 @@ const CastItem = ({item}) => {
                     style={styles.image}
                     source={item.profile_path != null ? { uri: 'https://image.tmdb.org/t/p/w500' + item.profile_path } : require('../assets/no-image-icon.png')}
                 />
-
             </CardItem>
-            <CardItem style={{ paddingTop: 0, borderRadius: 8 }}>
-                <Text>{item.name}</Text>
+            <CardItem style={styles.cardItemFooter}>
+                <Text numberOfLines={1}>{item.name}</Text>
             </CardItem>
         </Card>
     )
@@ -33,8 +32,10 @@ const styles = StyleSheet.create({
     },
     image:{
         height: 160, width: 100, flex: 1
+    },
+    cardItemFooter:{
+         paddingTop: 0, borderRadius: 8 
     }
 })
-
 
 export default CastItem

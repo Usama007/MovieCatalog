@@ -1,4 +1,4 @@
-import { Body, Card, CardItem, Container, H1, H2, H3, List, ListItem } from 'native-base';
+import { Body, Card, CardItem, Container, ListItem } from 'native-base';
 import React, { useEffect, useState } from 'react'
 import { View, Text, Image, ImageBackground, StyleSheet, TouchableOpacity, Linking, FlatList, ScrollView, ActivityIndicator } from 'react-native'
 import Ionicons from 'react-native-vector-icons/Ionicons'
@@ -7,9 +7,14 @@ import api from '../misc/api';
 import moment from 'moment';
 import MovieListItem from '../components/movieListItem';
 import CastItem from '../components/castItem';
+import { useDispatch, useSelector } from 'react-redux';
+import AddToWatchList from '../misc/addToWatchList';
+import RemoveFromWatchList from '../misc/removeFromWatchList';
 
 const DetailScreen = ({ route }) => {
     const { movie_id, title } = route.params;
+    const dispatch = useDispatch();
+    const watchList = useSelector(state => state.watchList)
     const [movieDetail, setmovieDetail] = useState({})
     const [actorList, setactorList] = useState([])
     const [crewList, setcrewList] = useState([])
@@ -17,12 +22,21 @@ const DetailScreen = ({ route }) => {
     const [loadingDetail, setloadingDetail] = useState(false)
     const [loadingCastnCrew, setloadingCastnCrew] = useState(false)
     const [loadingSimilarMovies, setloadingSimilarMovies] = useState(false)
+    const [isAddedToWatchlist, setisAddedToWatchlist] = useState(false)
 
     useEffect(() => {
+        checkWatchList()
         getCredit()
         getDetail()
         getSimilarMovies()
     }, [movie_id])
+
+    useEffect(() => {
+        checkWatchList()
+    }, [watchList])
+
+
+
 
     const getDetail = async () => {
         try {
@@ -89,11 +103,28 @@ const DetailScreen = ({ route }) => {
         }
     }
 
+    const checkWatchList = () => {
+        let index = watchList.findIndex(item => { return item.id === movie_id });
+        if (index >= 0) {
+            setisAddedToWatchlist(true)
+        } else {
+            setisAddedToWatchlist(false)
+        }
+    }
+
+    const onPressAddToWatchlistIcon = () => {
+        if (isAddedToWatchlist) {
+            RemoveFromWatchList(movieDetail, dispatch)
+        } else {
+            AddToWatchList(movieDetail, watchList, dispatch)
+        }
+    }
+
 
     return (
         <Container style={styles.container}>
             <ScrollView>
-                {loadingDetail ? <ActivityIndicator size={'large'} /> : (
+                {loadingDetail ? <ActivityIndicator size={'large'} style={styles.loader} /> : (
                     <>
                         <Card style={styles.topCard}>
                             <CardItem style={styles.cardItemImage}>
@@ -127,10 +158,10 @@ const DetailScreen = ({ route }) => {
                                     )}
 
 
-                                    <TouchableOpacity style={{ flex: 1,alignItems: 'flex-end' }} onPress={() => {
-                                        
+                                    <TouchableOpacity style={{ flex: 1, alignItems: 'flex-end' }} onPress={() => {
+                                        onPressAddToWatchlistIcon()
                                     }}>
-                                        <Ionicons name="md-heart-outline" size={20} />
+                                        <Ionicons name={isAddedToWatchlist ? 'md-heart' : 'md-heart-outline'} size={20} color={'#FDCC0D'} />
                                     </TouchableOpacity>
 
                                 </View>
@@ -150,8 +181,7 @@ const DetailScreen = ({ route }) => {
                         </Card>
                     </>
                 )}
-
-                {loadingCastnCrew ? <ActivityIndicator size={'large'} /> : (<>
+                {loadingCastnCrew ? <ActivityIndicator size={'large'} style={styles.loader} /> : (<>
                     <View style={styles.viewWrapper}>
                         <ListItem itemDivider>
                             <Text>Top Actors</Text>
@@ -167,9 +197,7 @@ const DetailScreen = ({ route }) => {
                         />
                     </View>
                 </>)}
-
-
-                {loadingSimilarMovies ? <ActivityIndicator size={'large'} /> : (
+                {loadingSimilarMovies ? <ActivityIndicator size={'large'} style={styles.loader} /> : (
                     <>
                         <View style={styles.viewWrapper}>
                             <ListItem itemDivider>
@@ -187,10 +215,6 @@ const DetailScreen = ({ route }) => {
                         </View>
                     </>
                 )}
-
-
-
-
             </ScrollView>
         </Container>
     )
@@ -198,15 +222,29 @@ const DetailScreen = ({ route }) => {
 const styles = StyleSheet.create({
     container: {
         paddingHorizontal: 5,
+        flex: 1
+    },
+    loader: {
+        flex: 1,
+        justifyContent: 'center'
     },
     topCard: {
-        flexDirection: 'row', borderRadius: 8
+        flexDirection: 'row',
+        borderRadius: 8
     },
     cardItemImage: {
-        flex: 1, paddingLeft: 5, paddingRight: 0, borderRadius: 8
+        flex: 1,
+        paddingLeft: 5,
+        paddingRight: 0,
+        borderRadius: 8
     },
     topCardItem: {
-        flex: 2.5, paddingLeft: 0, flexDirection: 'column', borderRadius: 8, justifyContent: 'center', alignItems: 'flex-start'
+        flex: 2.5,
+        paddingLeft: 0,
+        flexDirection: 'column',
+        borderRadius: 8,
+        justifyContent: 'center',
+        alignItems: 'flex-start'
     },
     cardOverviewBorder: {
         borderRadius: 8
@@ -226,8 +264,8 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 16
     },
-    topCardLastRowWrapper:{
-        flexDirection:'row'
+    topCardLastRowWrapper: {
+        flexDirection: 'row'
     }
 })
 

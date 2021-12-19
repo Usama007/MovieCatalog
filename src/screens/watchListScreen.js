@@ -4,16 +4,16 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native
 import { useDispatch, useSelector } from 'react-redux'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { removeFromWatchList } from '../redux/watchListSlice'
+import  RemoveFromWatchList  from '../misc/removeFromWatchList'
 import { Caption } from 'react-native-paper'
 
 
 const WatchListScreen = ({ navigation }) => {
     const watchList = useSelector(state => state.watchList)
     const dispatch = useDispatch()
-
-
+    
     const onPressRemoveFromWatchList = (item) => {
-        dispatch(removeFromWatchList(item))
+        RemoveFromWatchList(item,dispatch)
     }
 
     return (

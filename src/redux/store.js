@@ -6,7 +6,6 @@ import thunk from 'redux-thunk'
 import watchListSlice from './watchListSlice';
 import recentlyVisitedSlice from './recentlyVisitedSlice';
 
-
 const persistConfig = {
     key: 'root',
     storage: AsyncStorage,
@@ -16,7 +15,6 @@ const persistConfig = {
 const reducers = combineReducers({
     watchList: watchListSlice,
     recentlyVisited: recentlyVisitedSlice,
-
 });
 
 const persistedReducer = persistReducer(persistConfig, reducers);

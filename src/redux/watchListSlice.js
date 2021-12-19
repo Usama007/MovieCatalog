@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 const initialState = []
 export const watchListSlice = createSlice({
-    name: 'favorite',
+    name: 'watchList',
     initialState,
     reducers: {
         addToWatchList: (state, action) => {
