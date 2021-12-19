@@ -85,7 +85,7 @@ const HomeScreen = ({ navigation }) => {
             })
             for (var movie of movies.data?.results) {
                 for (var genre of jsonArray) {
-                    if (genre.movies.length < 5) {
+                    if (genre.movies.length < 15) {
                         continueToTraverse = true;
                         if (movie.poster_path != null) {
                             let index = movie.genre_ids.findIndex(item => { return item === genre.id });

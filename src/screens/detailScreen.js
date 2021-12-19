@@ -10,6 +10,7 @@ import CastItem from '../components/castItem';
 import { useDispatch, useSelector } from 'react-redux';
 import AddToWatchList from '../misc/addToWatchList';
 import RemoveFromWatchList from '../misc/removeFromWatchList';
+import YouTube from 'react-native-youtube';
 
 const DetailScreen = ({ route }) => {
     const { movie_id, title } = route.params;
@@ -23,9 +24,11 @@ const DetailScreen = ({ route }) => {
     const [loadingCastnCrew, setloadingCastnCrew] = useState(false)
     const [loadingSimilarMovies, setloadingSimilarMovies] = useState(false)
     const [isAddedToWatchlist, setisAddedToWatchlist] = useState(false)
+    const [trailer, settrailer] = useState({})
 
     useEffect(() => {
         checkWatchList()
+        getTrailer();
         getCredit()
         getDetail()
         getSimilarMovies()
@@ -34,9 +37,6 @@ const DetailScreen = ({ route }) => {
     useEffect(() => {
         checkWatchList()
     }, [watchList])
-
-
-
 
     const getDetail = async () => {
         try {
@@ -74,7 +74,7 @@ const DetailScreen = ({ route }) => {
                         }
                     })
                     actorArray = [...actorArray, actorImage.data]
-                } else if (credit.job == 'Producer' || credit.known_for_department == 'Directing' || credit.known_for_department == 'Writing') {
+                } else if (credit.job == 'Producer' || credit.known_for_department == 'Production' || credit.known_for_department == 'Writing') {
                     crewArray = [...crewArray, credit]
                 }
             }
@@ -96,6 +96,22 @@ const DetailScreen = ({ route }) => {
                 }
             })
             setsimilarMovieList(movies.data.results);
+            setloadingSimilarMovies(false)
+        } catch (error) {
+            console.warn(error)
+            setloadingSimilarMovies(false)
+        }
+    }
+
+    const getTrailer = async () => {
+        try {
+            setloadingSimilarMovies(true)
+            let trailers = await api.get(`movie/${movie_id}/videos`, {
+                params: {
+                    api_key: Config.API_KEY,
+                }
+            })
+            settrailer(trailers.data?.results[0]);
             setloadingSimilarMovies(false)
         } catch (error) {
             console.warn(error)
@@ -134,14 +150,12 @@ const DetailScreen = ({ route }) => {
                                     style={styles.images}
                                     source={{ uri: 'https://image.tmdb.org/t/p/w500' + movieDetail.poster_path }}
                                 />
-
                             </CardItem>
                             <CardItem style={styles.topCardItem}>
                                 <Text style={styles.title}>{title}</Text>
                                 <Text>Release Date - {moment(movieDetail.release_date, ['YYYY-MM-DD']).format('DD-MM-YYYY')}</Text>
                                 <Text>Duration - {(parseFloat(movieDetail.runtime) / 60).toFixed(2)}h</Text>
                                 <Text>Rating - <Ionicons name='star' size={15} color={'#FDCC0D'} /> {movieDetail.vote_average} ({movieDetail.vote_count})</Text>
-
                                 <Text>
                                     {movieDetail.genres?.map((item, index) => (
                                         <Text key={item.name}>{item.name}{index + 1 != movieDetail.genres.length && `, `}</Text>
@@ -165,9 +179,6 @@ const DetailScreen = ({ route }) => {
                                     </TouchableOpacity>
 
                                 </View>
-
-
-
                             </CardItem>
                         </Card>
 
@@ -179,6 +190,22 @@ const DetailScreen = ({ route }) => {
                                 <Text>{movieDetail.overview}</Text>
                             </CardItem>
                         </Card>
+                        {trailer.key != undefined && (
+                            <Card style={styles.cardOverviewBorder}>
+                                <CardItem style={styles.cardOverviewBorder}>
+                                    <YouTube
+                                        apiKey='AIzaSyAbfxk-o_Ip4jd5pajMYCU93wexVxa5rMY'
+                                        videoId={trailer.key}
+                                        play={false}
+                                        fullscreen={false}
+                                        showFullscreenButton={true}
+                                        loop={false}
+                                        style={styles.videoPlayer}
+                                    />
+                                </CardItem>
+                            </Card>
+                        )}
+
                     </>
                 )}
                 {loadingCastnCrew ? <ActivityIndicator size={'large'} style={styles.loader} /> : (<>
@@ -195,6 +222,22 @@ const DetailScreen = ({ route }) => {
                                 <CastItem item={item} />
                             )}
                         />
+                        {crewList.length > 0 && (
+                            <>
+                                <ListItem itemDivider>
+                                    <Text>Crews</Text>
+                                </ListItem>
+                                <FlatList
+                                    data={crewList}
+                                    horizontal={true}
+                                    showsHorizontalScrollIndicator={false}
+                                    keyExtractor={item => item.id}
+                                    renderItem={({ item }) => (
+                                        <CastItem item={item} />
+                                    )}
+                                />
+                            </>
+                        )}
                     </View>
                 </>)}
                 {loadingSimilarMovies ? <ActivityIndicator size={'large'} style={styles.loader} /> : (
@@ -233,18 +276,17 @@ const styles = StyleSheet.create({
         borderRadius: 8
     },
     cardItemImage: {
-        flex: 1,
         paddingLeft: 5,
-        paddingRight: 0,
+        paddingRight: 10,
         borderRadius: 8
     },
     topCardItem: {
-        flex: 2.5,
         paddingLeft: 0,
         flexDirection: 'column',
         borderRadius: 8,
         justifyContent: 'center',
-        alignItems: 'flex-start'
+        alignItems: 'flex-start',
+        flex: 1
     },
     cardOverviewBorder: {
         borderRadius: 8
@@ -265,7 +307,13 @@ const styles = StyleSheet.create({
         fontSize: 16
     },
     topCardLastRowWrapper: {
-        flexDirection: 'row'
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    videoPlayer: {
+        alignSelf: 'stretch',
+        height: 300,
+        flex: 1
     }
 })
 

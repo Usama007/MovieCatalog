@@ -67,7 +67,7 @@ const GenreScreen = ({ route, navigation }) => {
 
 
     return (
-        <Container >
+        <Container style={{flex:1}}>
             {loading ? <ActivityIndicator size={'large'} style={styles.loader} /> : (
                 <FlatList
                     data={movieList}
@@ -75,7 +75,6 @@ const GenreScreen = ({ route, navigation }) => {
                     numColumns={3}
                     renderItem={({ item }) => (
                         <MovieListItem item={item} screenName={'Genre'} />
-
                     )}
                 />
             )}

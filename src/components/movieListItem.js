@@ -26,7 +26,7 @@ const MovieListItem = ({ item, screenName = null }) => {
     }   
 
     return (
-        <TouchableOpacity onPress={onPressMovie} >
+        <TouchableOpacity onPress={onPressMovie} style={{flex:1}}>
             <Card style={styles.card}>
                 <CardItem cardBody style={styles.cardItem}>
                     <Image
@@ -66,6 +66,7 @@ const styles = StyleSheet.create({
         width: 140,
         paddingLeft: 5,
         paddingRight: 5,
+        alignSelf:'center'
     },
 
     cardItemFooterForGenre: {
@@ -74,6 +75,7 @@ const styles = StyleSheet.create({
         width: 130,
         paddingLeft: 5,
         paddingRight: 5,
+        alignSelf:'center'
     },
     footerBtnText: {
         color: '#fff', fontSize: 12
