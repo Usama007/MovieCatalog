@@ -2,14 +2,14 @@ import { useNavigation } from '@react-navigation/native'
 import { CardItem } from 'native-base'
 import React, { useEffect } from 'react'
 import { StyleSheet, Image, TouchableOpacity, ImageComponent, ImageBackground, Text, Alert } from 'react-native'
-import { Card } from 'react-native-paper'
+import { Caption, Card } from 'react-native-paper'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { useDispatch, useSelector } from 'react-redux'
 import { addToRecentlyVisited } from '../redux/recentlyVisitedSlice'
 import { addToWatchList } from '../redux/watchListSlice'
 
 
-const MovieListItem = ({ item }) => {
+const MovieListItem = ({ item,screenName=null }) => {
     const navigation = useNavigation();
     const dispatch = useDispatch()
     const watchList = useSelector(state => state.watchList)
@@ -60,34 +60,28 @@ const MovieListItem = ({ item }) => {
 
 
     return (
-        <TouchableOpacity onPress={onPressMovie}>
-            <Card style={styles.card} key={item.id}>
-                <CardItem style={styles.cardItem}>
-                    {item.poster_path != null ? (
-                        <>
-                            <Image
-                                resizeMethod='resize'
-                                resizeMode='cover'
-                                style={styles.images}
-                                source={{ uri: 'https://image.tmdb.org/t/p/w500' + item.poster_path }}
-
-                            />
-                        </>
-                    ) : (
-                        <Image
-                            resizeMode='stretch'
-                            style={styles.images}
-                            source={require('../assets/no-image-icon.png')}
-                        />
-                    )}
+        <TouchableOpacity onPress={onPressMovie} >
+            <Card style={styles.card}>
+                <CardItem cardBody style={styles.cardItem}>
+                    <Image
+                        resizeMethod='resize'
+                        resizeMode="cover"
+                        source={{ uri: 'https://image.tmdb.org/t/p/w500' + item.poster_path }}
+                        style={styles.images}
+                    />
                 </CardItem>
-                <CardItem footer style={styles.cardItemFooter}>
+                <CardItem footer style={screenName==null?styles.cardItemFooter:styles.cardItemFooterForGenre}>
+                    <Caption numberOfLines={1} >{item.title}</Caption>
                     <TouchableOpacity style={styles.footerBtn} onPress={onPressAddToWatchList}>
                         <Ionicons name="add" size={15} color={'#fff'} />
                         <Text style={styles.footerBtnText}>WATCHLIST</Text>
                     </TouchableOpacity>
 
                 </CardItem>
+                {/* <CardItem>
+                    <Text>{item.poster_path}</Text>
+                </CardItem> */}
+
             </Card>
         </TouchableOpacity>
     )
@@ -100,29 +94,48 @@ const styles = StyleSheet.create({
         marginRight: 5,
         marginTop: 10,
         marginBottom: 10,
-        borderRadius: 8
+        borderRadius: 8,
+
     },
     cardItem: {
-        paddingLeft: 0,
-        paddingRight: 0,
-        justifyContent:'center',
-        paddingTop: 0,
-        paddingBottom: 0
+        // paddingLeft: 0,
+        // paddingRight: 0,
+        // paddingTop: 0,
+        // paddingBottom: 0,
+        justifyContent:'center'
+    
     },
     cardItemFooter: {
-        borderRadius: 8
+        borderRadius: 8,
+        flexDirection:'column',
+        width: 140,
+        paddingLeft: 5,
+        paddingRight: 5,
+    },
+
+    cardItemFooterForGenre:{
+        borderRadius: 8,
+        flexDirection:'column',
+        width: 130,
+        paddingLeft: 5,
+        paddingRight: 5,
     },
     footerBtnText: {
         color: '#fff', fontSize: 12
     },
     footerBtn: {
-        flexDirection: 'row', backgroundColor: '#039aff', padding: 6,
-        borderRadius: 4
+        flexDirection: 'row',
+        backgroundColor: '#039aff',
+        padding: 6,
+        borderRadius: 4,
+        marginTop: 5
     },
     images: {
         height: 160,
-        width: 110,     
-        
+        width: 110,   
+    },
+    title:{
+        fontSize: 15
     }
 
 })

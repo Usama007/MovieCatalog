@@ -1,6 +1,6 @@
-import { Container, List, ListItem } from 'native-base'
+import { Card, CardItem, Container, List, ListItem, View } from 'native-base'
 import React, { useEffect, useState } from 'react'
-import { Text, ScrollView, ActivityIndicator, StyleSheet, TouchableOpacity, Pressable, TouchableHighlight } from 'react-native'
+import { Text, ScrollView, ActivityIndicator, StyleSheet, TouchableOpacity, Pressable, TouchableHighlight, FlatList, Image } from 'react-native'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import Config from 'react-native-config'
 import MovieListItem from '../components/movieListItem'
@@ -11,8 +11,20 @@ import recentlyVisitedSlice from '../redux/recentlyVisitedSlice'
 
 const HomeScreen = ({ navigation }) => {
     const [loading, setloading] = useState(false)
+    const [genreList, setgenreList] = useState([])
     const [genreObj, setgenreObj] = useState({})
+    const [jsonArray, setjsonArray] = useState([])
+    const [fetchMovies, setfetchMovies] = useState(false)
     const recentlyVisited = useSelector(state => state.recentlyVisited)
+    const watchList = useSelector(state => state.watchList)
+    const [traverseCompleted, settraverseCompleted] = useState(false)
+
+    // useEffect(() => {
+    //     const unsubscribe = navigation.addListener('focus', () => {
+    //         getMovieGenreList()
+    //     });
+    //     return unsubscribe;
+    // }, [navigation])
 
 
     useEffect(() => {
@@ -28,14 +40,34 @@ const HomeScreen = ({ navigation }) => {
             )
 
         })
-        getMovieGenreList()
+        getGenreList()
     }, [])
 
-    const getMovieGenreList = async () => {
+    useEffect(() => {
+        if (fetchMovies) {
+            setfetchMovies(false);
+            getMovieList()
+        }
+    }, [fetchMovies])
+
+    useEffect(() => {
+
+    }, [jsonArray])
+
+    useEffect(() => {
+        if (traverseCompleted) {
+            setloading(false)
+        }
+    }, [traverseCompleted])
+
+
+
+
+
+
+    const getGenreList = async () => {
         try {
             setloading(true)
-            let jsonObj = {};
-            let array = [];
 
             let genres = await api.get("genre/movie/list", {
                 params: {
@@ -45,47 +77,124 @@ const HomeScreen = ({ navigation }) => {
             })
 
 
+            let array = []
             for (var genre of genres.data?.genres) {
-                let pageNo = 1;
-                let movies = await api.get("search/movie", {
-                    params: {
-                        api_key: Config.API_KEY,
-                        language: 'en-US',
-                        page: pageNo,
-                        include_adult: false,
-                        query: genre.name,
-                    }
-                })
-                for (var movie of movies.data?.results) {
-                    if (array.length == 5)
-                        break;
-                    let index = movie.genre_ids.findIndex(item => { return item === genre.id });
-                    if (index >= 0) {
-                        array.push(movie)
-                    }
+                let obj = {
+                    id: genre.id,
+                    name: genre.name,
+                    movies: []
                 }
-
-                if (array.length < 5) {
-                    pageNo++;
-                    continue;
-                } else {
-                    let object = {
-                        name: genre.name,
-                        movies: array
-                    }
-                    jsonObj[genre.id] = object;
-                    array = [];
-                    pageNo = 1;
-                }
+                array.push(obj)
             }
-            console.log(jsonObj);
-            setgenreObj(jsonObj)
+
+            setjsonArray(array)
             setloading(false)
+
+            setfetchMovies(true)
+
         } catch (error) {
             console.warn(error)
             setloading(false)
         }
     }
+
+
+
+    const getMovieList = async (page = 1) => {
+        try {
+            setloading(true)
+            let continueToTraverse = false;
+            console.log('Before: ', jsonArray);
+
+            let movies = await api.get("movie/popular", {
+                params: {
+                    api_key: Config.API_KEY,
+                    language: 'en-US',
+                    page: page
+                }
+            })
+
+            for (var movie of movies.data?.results) {
+                for (var genre of jsonArray) {
+                    if (genre.movies.length < 5) {
+                        continueToTraverse = true;
+                        if (movie.poster_path != null) {
+                            let index = movie.genre_ids.findIndex(item => { return item === genre.id });
+                            if (index >= 0) {
+                                genre.movies.push(movie)
+                            }
+                        }
+                    } else {
+                        if (!continueToTraverse) {
+                            continueToTraverse = false
+                        }
+                    }
+                }
+            }
+
+            if (continueToTraverse) {          
+                let pageNo = page + 1;
+                if(pageNo<15){
+                    getMovieList(pageNo)
+                }else{
+                    continueToTraverse = false
+                    settraverseCompleted(true)
+                }                
+            } else {
+                settraverseCompleted(true)
+            }
+
+
+
+
+            // let continueTraversing = true;
+            // let array = [];
+            // let movies = await api.get("movie/top_rated", {
+            //     params: {
+            //         api_key: Config.API_KEY,
+            //         language: 'en-US',
+            //         page: page
+            //     }
+            // })
+            // console.log(movies.data.results);
+
+            // for(var movie of movies.data?.results){
+
+            //     for(var genre of jsonArray){
+            //         // if(genre.movies.length <5){
+            //         //     if (movie.poster_path != null) {
+            //         //         let index = movie.genre_ids.findIndex(item => { return item === genre.id });
+            //         //         if (index >= 0) {
+            //         //             genre.movie.push(movie)
+            //         //         }
+
+            //         //     }
+            //         // }else{
+            //         //     break;
+            //         // }
+            //     }
+
+            // }
+
+
+
+
+
+
+        } catch (error) {
+            console.warn(error)
+            setloading(false)
+        }
+    }
+
+
+    const getMissingArrays = () => {
+
+    }
+
+
+
+
     return (
 
         <Container>
@@ -107,19 +216,17 @@ const HomeScreen = ({ navigation }) => {
                         </>
                     )}
 
-                    {Object.keys(genreObj).map((obj, index) =>
-                        <List key={obj} >
-
+                    {jsonArray.map((genre, index) =>
+                        <List key={genre.id}>
                             <ListItem itemDivider style={styles.genreItemDivider} onPress={() => {
-                                navigation.navigate('Genre')
+                                navigation.navigate('Genre', { genreId: genre.id, genreName: genre.name })
                             }}>
-                                <Text style={styles.genreName}>{genreObj[obj].name}</Text>
+                                <Text style={styles.genreName}>{genre.name}</Text>
                                 <Ionicons name="chevron-forward" size={15} />
-
                             </ListItem>
 
                             <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-                                {genreObj[obj].movies.map((item, index) =>
+                                {genre.movies.map((item, index) =>
                                     <MovieListItem key={item.id} item={item} />
                                 )}
                             </ScrollView>
